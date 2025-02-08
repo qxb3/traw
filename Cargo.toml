@@ -7,3 +7,10 @@ edition = "2021"
 crossterm = "0.28.1"
 ratatui = "0.29.0"
 tokio = { version = "1.43.0", features = ["full"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
