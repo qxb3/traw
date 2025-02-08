@@ -14,9 +14,6 @@ impl Ui {
 
     /// Draw the ui.
     pub fn draw(&mut self, frame: &mut Frame<'_>, _state: &mut State) {
-        frame.render_widget(
-            Text::from("Hello, World"),
-            frame.area()
-        );
+        frame.render_widget(Text::from("Hello, World"), frame.area());
     }
 }

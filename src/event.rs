@@ -19,7 +19,7 @@ pub enum TrawEvent {
     Mouse(crossterm::event::MouseEvent),
 
     /// Terminal resize.
-    Resize(u16, u16)
+    Resize(u16, u16),
 }
 
 /// The struct that will handle events.
@@ -44,7 +44,7 @@ impl EventHandler {
         Self {
             sender,
             receiver,
-            tick_rate
+            tick_rate,
         }
     }
 
@@ -104,11 +104,9 @@ impl EventHandler {
         self.receiver
             .recv()
             .await
-            .ok_or(
-                Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Failed to receive an event from EventHandler."
-                ))
-            )
+            .ok_or(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Failed to receive an event from EventHandler.",
+            )))
     }
 }
