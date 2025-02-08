@@ -1,6 +1,8 @@
 [package]
 name = "traw"
-version = "0.1.0"
+description = "draw diagrams on your terminal."
+license = "MIT"
+version = "0.0.1"
 edition = "2021"
 
 [dependencies]
