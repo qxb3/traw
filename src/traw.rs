@@ -2,7 +2,7 @@ use std::panic;
 
 use ratatui::{prelude::CrosstermBackend, Terminal};
 
-use crate::event::{EventHandler, TrawEvent};
+use crate::{event::{EventHandler, TrawEvent}, ui::Ui};
 
 /// Traw's Result type alias.
 pub type TrawResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -15,6 +15,9 @@ pub struct Traw {
 
     // The event handler.
     event_handler: EventHandler,
+
+    // The ui.
+    ui: Ui,
 
     /// Whether we should exit.
     pub exit: bool
@@ -34,6 +37,7 @@ impl Traw {
         Self {
             terminal: ratatui::init(),
             event_handler: EventHandler::new(30),
+            ui: Ui::new(),
             exit: false
         }
     }
@@ -45,7 +49,7 @@ impl Traw {
 
         while !self.exit {
             match self.event_handler.next().await? {
-                TrawEvent::Tick => self.tick(),
+                TrawEvent::Tick => self.tick()?,
                 TrawEvent::Keypress(key) => self.keypress(key),
                 TrawEvent::Mouse(mouse) => self.mouse(mouse),
                 TrawEvent::Resize(width, height) => self.resize(width, height),
@@ -56,7 +60,14 @@ impl Traw {
     }
 
     /// Handles tick event.
-    fn tick(&mut self) {}
+    fn tick(&mut self) -> TrawResult<()> {
+        // Draw ui.
+        self.terminal.draw(|frame| {
+            self.ui.draw(frame);
+        })?;
+
+        Ok(())
+    }
 
     /// Handles Keypress event.
     fn keypress(&mut self, key: crossterm::event::KeyEvent) {
