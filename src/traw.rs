@@ -13,6 +13,9 @@ pub struct Traw {
     /// The terminal.
     terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
 
+    // The event handler.
+    event_handler: EventHandler,
+
     /// Whether we should exit.
     pub exit: bool
 }
@@ -30,20 +33,18 @@ impl Traw {
 
         Self {
             terminal: ratatui::init(),
+            event_handler: EventHandler::new(30),
             exit: false
         }
     }
 
     /// Starts traw.
     pub async fn run(&mut self) -> TrawResult<()> {
-        // Creates a new EventHandler with 30 fps.
-        let mut event_handler = EventHandler::new(30);
-
         // Starts handling events.
-        event_handler.handle();
+        self.event_handler.handle();
 
         while !self.exit {
-            match event_handler.next().await? {
+            match self.event_handler.next().await? {
                 TrawEvent::Tick => self.tick(),
                 TrawEvent::Keypress(key) => self.keypress(key),
                 TrawEvent::Mouse(mouse) => self.mouse(mouse),
