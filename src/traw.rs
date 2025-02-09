@@ -105,7 +105,7 @@ impl Traw {
 
             // Left mouse drag.
             crossterm::event::MouseEventKind::Drag(crossterm::event::MouseButton::Left) => {
-                self.ui.mouse_drag(mouse);
+                self.ui.mouse_drag(mouse, &mut self.state);
             }
 
             // Mouse release.
