@@ -1,12 +1,12 @@
 use std::panic;
 
 use crossterm::{event::EnableMouseCapture, execute};
-use ratatui::{prelude::CrosstermBackend, Terminal};
+use ratatui::{layout::Position, prelude::CrosstermBackend, Terminal};
 
 use crate::{
     event::{EventHandler, TrawEvent},
-    state::State,
-    ui::Ui,
+    shape::shape::Shape,
+    state::State, ui
 };
 
 /// Traw's Result type alias.
@@ -20,9 +20,6 @@ pub struct Traw {
 
     /// The event handler.
     event_handler: EventHandler,
-
-    /// The ui.
-    ui: Ui,
 
     /// The state.
     state: State,
@@ -48,7 +45,6 @@ impl Traw {
         Ok(Self {
             terminal: ratatui::init(),
             event_handler: EventHandler::new(60),
-            ui: Ui::new(),
             state: State::new(),
             exit: false,
         })
@@ -77,7 +73,7 @@ impl Traw {
     fn tick(&mut self) -> TrawResult<()> {
         // Draw ui.
         self.terminal.draw(|frame| {
-            self.ui.draw(frame, &mut self.state);
+            ui::render(frame, &mut self.state);
         })?;
 
         Ok(())
@@ -99,18 +95,44 @@ impl Traw {
     fn mouse(&mut self, mouse: crossterm::event::MouseEvent) {
         match mouse.kind {
             // Left click.
-            crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
-                self.ui.mouse_click(mouse);
-            }
+            crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left) => {}
 
             // Left mouse drag.
             crossterm::event::MouseEventKind::Drag(crossterm::event::MouseButton::Left) => {
-                self.ui.mouse_drag(mouse, &mut self.state);
+                // Checks to see if we currently dragging and if not set the
+                // self.dragging & self.start_drag to say we are.
+                if !self.state.dragging && self.state.start_drag.is_none() {
+                    self.state.dragging = true;
+                    self.state.start_drag = Some(Position::new(mouse.column, mouse.row));
+                }
+
+                // Checks if we are currently dragging.
+                if self.state.dragging {
+                    self.state.current_drag = Some(Position::new(mouse.column, mouse.row));
+
+                    if let Some(start_drag) = &self.state.start_drag {
+                        if let Some(current_drag) = &self.state.current_drag {
+                            self.state.current_shape = Some(Shape::Rectangle {
+                                p1: *start_drag,
+                                p2: Position::new(current_drag.x, start_drag.y),
+                                p3: Position::new(current_drag.x, current_drag.y),
+                                p4: Position::new(start_drag.x, current_drag.y),
+                            })
+                        }
+                    }
+                }
             }
 
             // Mouse release.
             crossterm::event::MouseEventKind::Up(crossterm::event::MouseButton::Left) => {
-                self.ui.mouse_release(mouse, &mut self.state);
+                self.state.dragging = false;
+                self.state.start_drag = None;
+                self.state.current_drag = None;
+
+                // Push the new shape into state.
+                if let Some(current_shape) = &self.state.current_shape {
+                    self.state.shapes.push(current_shape.to_owned());
+                }
             }
 
             _ => {}

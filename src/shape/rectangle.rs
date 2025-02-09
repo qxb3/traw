@@ -7,7 +7,7 @@ use super::shape::Shape;
 #[derive(PartialEq)]
 enum Direction {
     Horizontal,
-    Vertical
+    Vertical,
 }
 
 /// Helper function for drawing a line.
@@ -15,7 +15,7 @@ fn draw_line(
     buf: &mut ratatui::prelude::Buffer,
     start: &Position,
     end: &Position,
-    direction: Direction
+    direction: Direction,
 ) {
     match direction {
         Direction::Horizontal => {
@@ -28,7 +28,7 @@ fn draw_line(
                     buf[(point, start.y)].set_char('━');
                 }
             }
-        },
+        }
         Direction::Vertical => {
             if start.y < end.y {
                 for point in (start.y + 1)..=(end.y - 1) {
@@ -48,7 +48,7 @@ pub fn render(
     shape: &Shape,
     _area: ratatui::prelude::Rect,
     buf: &mut ratatui::prelude::Buffer,
-    _state: &mut State
+    _state: &mut State,
 ) {
     if let Shape::Rectangle { p1, p2, p3, p4 } = shape {
         // Draw top line.

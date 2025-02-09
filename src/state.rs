@@ -18,7 +18,7 @@ pub struct State {
     pub current_shape: Option<Shape>,
 
     /// List of existing shapes.
-    pub shapes: Vec<Shape>
+    pub shapes: Vec<Shape>,
 }
 
 impl State {
@@ -29,7 +29,7 @@ impl State {
             start_drag: None,
             current_drag: None,
             current_shape: None,
-            shapes: Vec::new()
+            shapes: Vec::new(),
         }
     }
 }
