@@ -1,5 +1,6 @@
 use std::panic;
 
+use crossterm::{event::EnableMouseCapture, execute};
 use ratatui::{prelude::CrosstermBackend, Terminal};
 
 use crate::{
@@ -32,7 +33,7 @@ pub struct Traw {
 
 impl Traw {
     /// Creates new traw.
-    pub fn new() -> Self {
+    pub fn new() -> TrawResult<Self> {
         // Hook into panics to properly restore the terminal
         // when a panic happened.
         let panic_hook = panic::take_hook();
@@ -41,13 +42,16 @@ impl Traw {
             panic_hook(panic);
         }));
 
-        Self {
+        // Enables mouse capture.
+        execute!(std::io::stdout(), EnableMouseCapture)?;
+
+        Ok(Self {
             terminal: ratatui::init(),
-            event_handler: EventHandler::new(30),
+            event_handler: EventHandler::new(60),
             ui: Ui::new(),
             state: State::new(),
             exit: false,
-        }
+        })
     }
 
     /// Starts traw.
@@ -55,6 +59,8 @@ impl Traw {
         // Starts handling events.
         self.event_handler.handle();
 
+        // Continuesly read incoming events and
+        // handle them while we are not exiting.
         while !self.exit {
             match self.event_handler.next().await? {
                 TrawEvent::Tick => self.tick()?,
@@ -90,7 +96,26 @@ impl Traw {
     }
 
     /// Handles mouse event.
-    fn mouse(&mut self, _mouse: crossterm::event::MouseEvent) {}
+    fn mouse(&mut self, mouse: crossterm::event::MouseEvent) {
+        match mouse.kind {
+            // Left click.
+            crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left) => {
+                self.ui.mouse_click(mouse);
+            }
+
+            // Left mouse drag.
+            crossterm::event::MouseEventKind::Drag(crossterm::event::MouseButton::Left) => {
+                self.ui.mouse_drag(mouse);
+            }
+
+            // Mouse release.
+            crossterm::event::MouseEventKind::Up(crossterm::event::MouseButton::Left) => {
+                self.ui.mouse_release(mouse, &mut self.state);
+            }
+
+            _ => {}
+        }
+    }
 
     /// Handles resize event.
     fn resize(&mut self, _width: u16, _height: u16) {}
